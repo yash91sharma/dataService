@@ -11,7 +11,7 @@ scheduler.start()
 
 @app.route("/")
 def hello():
-    return jsonify({"message": "Server is running!"})
+    return jsonify({"message": "Portfolio Data Service is up!"})
 
 if __name__ == "__main__":
     app.run(debug=True, port=12345)
