@@ -49,8 +49,7 @@ def validate_snapshot(data):
     return None
 
 
-def get_latest_snapshot_map():
-    portfolio_id = "p1"
+def get_latest_snapshot_map(portfolio_id):
     try:
         response = requests.request(
             method="get",
@@ -67,8 +66,15 @@ def get_latest_snapshot_map():
         print("Error occured while generating daily snapshot: ", e)
         return e
 
+def get_all_transactions(portfolio_id, from_date, to_date):
+    try:
+        return True
+    except Exception as e:
+        print("Error occured while generating daily snapshot: ", e)
+        return e
 
 def generate_daily_snapshot():
-    snapshot_map = get_latest_snapshot_map()
+    portfolio_id = "p1"
+    snapshot_map = get_latest_snapshot_map(portfolio_id)
     print(snapshot_map)
     return True
