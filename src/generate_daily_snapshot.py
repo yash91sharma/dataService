@@ -37,14 +37,7 @@ def validate_snapshot(data):
     if "rows" not in data:
         return generate_missing_field_error("rows")
     if len(data["rows"]) != 1:
-        return (
-            jsonify(
-                {
-                    "error": f'Snapshot has incorrect number of rows, expected 1, got "{len(data["rows"])}".'
-                }
-            ),
-            400,
-        )
+        return f'Snapshot has incorrect number of rows, expected 1, got {len(data["rows"])}.'
     row = data["rows"][0]
     basic_field_validation_error = validate_fields(row, SNAPSHOT_REQUIRED_FIELDS)
     if basic_field_validation_error is not None:
