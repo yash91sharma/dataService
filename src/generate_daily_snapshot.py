@@ -1,5 +1,4 @@
 import json
-from flask import jsonify
 from .utils import (
     GET_TXN_BY_PORTFOLIO_DATE_URL,
     validate_fields,
