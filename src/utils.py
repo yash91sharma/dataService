@@ -28,3 +28,13 @@ SNAPSHOT_ASSETS_REQUIRED_FIELDS = [
     "cost_basis",
     "expiry_date",
 ]
+TXNS_REQUIRED_FIELDS = [
+    "date",
+    "entity_type",
+    "expiry_date",
+    "price",
+    "qty",
+    "strike",
+    "ticker",
+    "txn_type",
+]
