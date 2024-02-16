@@ -1,12 +1,14 @@
 import json
 from .utils import (
-    GET_TXN_BY_PORTFOLIO_DATE_URL,
+    GET_SNAPSHOT_BY_PORTFOLIO_DATE_URL,
     validate_fields,
     SNAPSHOT_REQUIRED_FIELDS,
     generate_missing_field_error,
     SNAPSHOT_ASSETS_REQUIRED_FIELDS,
+    GET_TXNS_BY_PORTFOLIO_DATE_URL,
 )
 import requests
+from datetime import datetime
 
 
 def convert_snapshot_to_map(data):
@@ -53,7 +55,7 @@ def get_latest_snapshot_map(portfolio_id):
     try:
         response = requests.request(
             method="get",
-            url=GET_TXN_BY_PORTFOLIO_DATE_URL,
+            url=GET_SNAPSHOT_BY_PORTFOLIO_DATE_URL,
             headers={"Content-Type": "application/json"},
             json={"portfolio_id": portfolio_id},
         )
@@ -66,15 +68,29 @@ def get_latest_snapshot_map(portfolio_id):
         print("Error occured while generating daily snapshot: ", e)
         return e
 
+
 def get_all_transactions(portfolio_id, from_date, to_date):
     try:
+        response = requests.request(
+            method="get",
+            url=GET_TXNS_BY_PORTFOLIO_DATE_URL,
+            headers={"Content-Type": "application/json"},
+            json={"portfolio_id": portfolio_id},
+        )
+        response.raise_for_status()
         return True
     except Exception as e:
         print("Error occured while generating daily snapshot: ", e)
         return e
 
+
 def generate_daily_snapshot():
     portfolio_id = "p1"
     snapshot_map = get_latest_snapshot_map(portfolio_id)
     print(snapshot_map)
+    today_date = datetime.today().strftime("%Y-%m-%d")
+    print("today's date: ", today_date)
+    all_txns = get_all_transactions(
+        portfolio_id, snapshot_map.get("snapshot_date"), today_date
+    )
     return True

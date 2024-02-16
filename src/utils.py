@@ -1,4 +1,6 @@
-GET_TXN_BY_PORTFOLIO_DATE_URL = "http://127.0.0.1:12342/getSnapshotByPortfolio"
+GET_SNAPSHOT_BY_PORTFOLIO_DATE_URL = "http://127.0.0.1:12342/getSnapshotByPortfolio"
+
+GET_TXNS_BY_PORTFOLIO_DATE_URL = "http://127.0.0.1:12342/getTransactionsByPortfolioDate"
 
 
 def generate_missing_field_error(field_name):
