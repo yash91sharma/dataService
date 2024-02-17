@@ -109,9 +109,12 @@ def get_all_transactions(portfolio_id, start_date, end_date):
 def generate_daily_snapshot():
     portfolio_id = "p1"
     snapshot_map = get_latest_snapshot_map(portfolio_id)
+    if isinstance(snapshot_map, Exception):
+        return False
     print(snapshot_map)
     today_date = datetime.today().strftime("%Y-%m-%d")
     all_txns = get_all_transactions(
         portfolio_id, snapshot_map.get("snapshot_date"), today_date
     )
+    print(all_txns)
     return True
