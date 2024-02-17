@@ -9,7 +9,7 @@ from .utils import (
     TXNS_REQUIRED_FIELDS,
 )
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def convert_snapshot_to_map(data):
@@ -34,6 +34,15 @@ def convert_snapshot_to_map(data):
             snapshot["assets"]["option"].append(asset)
     return snapshot
 
+def convert_txns_to_map_by_date(data):
+    txns_map_by_date = {}
+    for row in data:
+        date = row.get("date")
+        if date in txns_map_by_date:
+            txns_map_by_date[date].append(row)
+        else:
+            txns_map_by_date[date] = [row]
+    return txns_map_by_date
 
 def validate_snapshot(data, fields, subfields):
     if "rows" not in data:
@@ -99,8 +108,7 @@ def get_all_transactions(portfolio_id, start_date, end_date):
         )
         if transactions_validation_error is not None:
             raise Exception(transactions_validation_error)
-        # print("yo \n",response.json())
-        return True
+        return convert_txns_to_map_by_date(response.json()["rows"])
     except Exception as e:
         print("Error occured while generating daily snapshot: ", e)
         return e
@@ -111,10 +119,13 @@ def generate_daily_snapshot():
     snapshot_map = get_latest_snapshot_map(portfolio_id)
     if isinstance(snapshot_map, Exception):
         return False
-    print(snapshot_map)
+    print("portfolio:", snapshot_map)
+    from_date = (
+        datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
+        + timedelta(days=1)
+    ).strftime("%Y-%m-%d")
+    print(from_date)
     today_date = datetime.today().strftime("%Y-%m-%d")
-    all_txns = get_all_transactions(
-        portfolio_id, snapshot_map.get("snapshot_date"), today_date
-    )
-    print(all_txns)
+    all_txns = get_all_transactions(portfolio_id, from_date, today_date)
+    print("txns: ", all_txns)
     return True
