@@ -34,6 +34,7 @@ def convert_snapshot_to_map(data):
             snapshot["assets"]["option"].append(asset)
     return snapshot
 
+
 def convert_txns_to_map_by_date(data):
     txns_map_by_date = {}
     for row in data:
@@ -43,6 +44,7 @@ def convert_txns_to_map_by_date(data):
         else:
             txns_map_by_date[date] = [row]
     return txns_map_by_date
+
 
 def validate_snapshot(data, fields, subfields):
     if "rows" not in data:
@@ -114,6 +116,27 @@ def get_all_transactions(portfolio_id, start_date, end_date):
         return e
 
 
+def generate_date_list(start_date, end_date):
+    date_list = []
+    current_date = start_date
+    while current_date <= end_date:
+        date_list.append(current_date)
+        current_date = (
+            datetime.strptime(current_date, "%Y-%m-%d") + timedelta(days=1)
+        ).strftime("%Y-%m-%d")
+    return date_list
+
+
+def get_updated_snapshots(snapshot_map, all_txns, date_list):
+    updated_snapshots = []
+    for current_date in date_list:
+        snapshot = snapshot_map
+        current_date_txns = all_txns.get(current_date, None)
+        if current_date_txns is not None:
+            print(current_date, " date found.")
+    return updated_snapshots
+
+
 def generate_daily_snapshot():
     portfolio_id = "p1"
     snapshot_map = get_latest_snapshot_map(portfolio_id)
@@ -127,5 +150,8 @@ def generate_daily_snapshot():
     print(from_date)
     today_date = datetime.today().strftime("%Y-%m-%d")
     all_txns = get_all_transactions(portfolio_id, from_date, today_date)
-    print("txns: ", all_txns)
+    print("\ntxns: ", all_txns)
+    date_list = generate_date_list(from_date, today_date)
+    print("\ndate_list: ", date_list)
+    updated_snapshots = get_updated_snapshots(snapshot_map, all_txns, date_list)
     return True
