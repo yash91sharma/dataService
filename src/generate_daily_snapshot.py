@@ -7,6 +7,7 @@ from .utils import (
     SNAPSHOT_ASSETS_REQUIRED_FIELDS,
     GET_TXNS_BY_PORTFOLIO_DATE_URL,
     TXNS_REQUIRED_FIELDS,
+    GET_CLOSE_PRICE_BY_TICKER,
 )
 import requests
 from datetime import datetime, timedelta
@@ -126,39 +127,139 @@ def generate_date_list(start_date, end_date):
         ).strftime("%Y-%m-%d")
     return date_list
 
+
+def get_close_price_by_ticker(ticker: str) -> float:
+    try:
+        response = requests.request(
+            method="get",
+            url=GET_CLOSE_PRICE_BY_TICKER,
+            headers={"Content-Type": "application/json"},
+            json={"ticker": ticker},
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+        if "close_price" in data:
+            return float(data["close_price"])
+        else:
+            raise ValueError("Close_price not found in response.")
+    except Exception as e:
+        print("Error occured while fetching ticker's close price: ", e)
+        raise
+
+
+def update_existing_stock_in_snapshot(snapshot_map, stock_txn):
+    try:
+        ticker = stock_txn.get("ticker")
+        # positive for buy, negative for sell
+        txn_value = stock_txn.get("price") * stock_txn.get("qty")
+        txn_type = stock_txn.get("txn_type")
+
+        # existing value, qty, cost_basis in the snapshot
+        _, qty, cost_basis = snapshot_map["assets"]["stock"][ticker]
+
+        if txn_type == "buy":
+            # update cost basis, cost basis remains the same for sell
+            cost_basis = ((cost_basis * qty) + (txn_value)) / (
+                qty + stock_txn.get("qty")
+            )
+
+        # Update cash value
+        snapshot_map["assets"]["cash"] -= txn_value
+        qty += stock_txn.get("qty")
+
+        if qty == 0:
+            # remove the entry of all stocks are sold
+            del snapshot_map["assets"]["stock"][ticker]
+        else:
+            # update the value if stock qty is non zero
+            close_price = get_close_price_by_ticker(ticker)
+            snapshot_map["assets"]["stock"][ticker] = [
+                qty * close_price,
+                qty,
+                cost_basis,
+            ]
+    except Exception as e:
+        print("Error occured while updating an existing transaction: ", e)
+        raise
+
+
+def update_new_stock_in_snapshot(snapshot_map, stock_txn):
+    try:
+        ticker = stock_txn.get("ticker")
+        # positive for buy, negative for sell
+        qty = stock_txn.get("qty")
+        txn_value = qty * stock_txn.get("price")
+
+        # update cash value
+        snapshot_map["assets"]["cash"] -= txn_value
+
+        close_price = get_close_price_by_ticker(ticker)
+        snapshot_map["assets"]["stock"][ticker] = [
+            close_price * qty,
+            qty,
+            stock_txn.get("price"),
+        ]
+    except Exception as e:
+        print("Error occured while updating a new transaction: ", e)
+        raise
+
+
+def update_snapshot_with_stock_txn(snapshot_map, stock_txn):
+    try:
+        if stock_txn.get("ticker") in snapshot_map["assets"]["stock"]:
+            update_existing_stock_in_snapshot(snapshot_map, stock_txn)
+        else:
+            update_new_stock_in_snapshot(snapshot_map, stock_txn)
+    except Exception as e:
+        print("Error occured while updating a stock transaction: ", e)
+        raise
+
+
 def process_txns_by_date(snapshot_map, current_date_txns):
-    for txn in current_date_txns:
-        entity_type = txn.get("entity_type")
-        if entity_type == "cash":
-            snapshot_map["assets"]["cash"] += txn.get("qty")
-    return True
+    try:
+        for txn in current_date_txns:
+            entity_type = txn.get("entity_type")
+            if entity_type == "cash":
+                snapshot_map["assets"]["cash"] += txn.get("qty")
+            if entity_type == "stock":
+                update_snapshot_with_stock_txn(snapshot_map, txn)
+    except Exception as e:
+        print("Error occured while updating a transaction: ", e)
+        raise
 
 
 def get_updated_snapshots(snapshot_map, all_txns, date_list):
-    updated_snapshots = []
-    for current_date in date_list:
-        current_date_txns = all_txns.get(current_date, None)
-        if current_date_txns is not None:
-            print(current_date, " date found.")
-            process_txns_by_date(snapshot_map, current_date_txns)
-    return updated_snapshots
+    try:
+        updated_snapshots = []
+        for current_date in date_list:
+            current_date_txns = all_txns.get(current_date, None)
+            if current_date_txns is not None:
+                print(current_date, " date found.")
+                process_txns_by_date(snapshot_map, current_date_txns)
+        return updated_snapshots
+    except Exception as e:
+        print("Error occured while updating snapshot: ", e)
+        raise
 
 
-def generate_daily_snapshot():
-    portfolio_id = "p1"
-    snapshot_map = get_latest_snapshot_map(portfolio_id)
-    if isinstance(snapshot_map, Exception):
-        return False
-    print("portfolio:", snapshot_map)
-    from_date = (
-        datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
-        + timedelta(days=1)
-    ).strftime("%Y-%m-%d")
-    print(from_date)
-    today_date = datetime.today().strftime("%Y-%m-%d")
-    all_txns = get_all_transactions(portfolio_id, from_date, today_date)
-    print("\ntxns: ", all_txns)
-    date_list = generate_date_list(from_date, today_date)
-    print("\ndate_list: ", date_list)
-    updated_snapshots = get_updated_snapshots(snapshot_map, all_txns, date_list)
-    return True
+def generate_daily_snapshot_by_portfolio(portfolio_id):
+    try:
+        snapshot_map = get_latest_snapshot_map(portfolio_id)
+        if isinstance(snapshot_map, Exception):
+            return False
+        print("portfolio:", snapshot_map)
+        from_date = (
+            datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
+            + timedelta(days=1)
+        ).strftime("%Y-%m-%d")
+        print(from_date)
+        today_date = datetime.today().strftime("%Y-%m-%d")
+        all_txns = get_all_transactions(portfolio_id, from_date, today_date)
+        print("\ntxns: ", all_txns)
+        date_list = generate_date_list(from_date, today_date)
+        print("\ndate_list: ", date_list)
+        updated_snapshots = get_updated_snapshots(snapshot_map, all_txns, date_list)
+    except Exception as e:
+        print("Error occured while generating daily snapshots: ", e)
+        raise

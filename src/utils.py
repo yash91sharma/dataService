@@ -2,6 +2,8 @@ GET_SNAPSHOT_BY_PORTFOLIO_DATE_URL = "http://127.0.0.1:12342/getSnapshotByPortfo
 
 GET_TXNS_BY_PORTFOLIO_DATE_URL = "http://127.0.0.1:12342/getTransactionsByPortfolioDate"
 
+GET_CLOSE_PRICE_BY_TICKER = "http://127.0.0.1:12344/getClosePriceByTicker"
+
 
 def generate_missing_field_error(field_name):
     return f'Missing "{field_name}" in the input data'
@@ -20,6 +22,7 @@ SNAPSHOT_REQUIRED_FIELDS = [
     "assets",
     "snapshot_date",
 ]
+
 SNAPSHOT_ASSETS_REQUIRED_FIELDS = [
     "entity_type",
     "ticker",
@@ -28,6 +31,7 @@ SNAPSHOT_ASSETS_REQUIRED_FIELDS = [
     "cost_basis",
     "expiry_date",
 ]
+
 TXNS_REQUIRED_FIELDS = [
     "date",
     "entity_type",
