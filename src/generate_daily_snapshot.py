@@ -126,14 +126,21 @@ def generate_date_list(start_date, end_date):
         ).strftime("%Y-%m-%d")
     return date_list
 
+def process_txns_by_date(snapshot_map, current_date_txns):
+    for txn in current_date_txns:
+        entity_type = txn.get("entity_type")
+        if entity_type == "cash":
+            snapshot_map["assets"]["cash"] += txn.get("qty")
+    return True
+
 
 def get_updated_snapshots(snapshot_map, all_txns, date_list):
     updated_snapshots = []
     for current_date in date_list:
-        snapshot = snapshot_map
         current_date_txns = all_txns.get(current_date, None)
         if current_date_txns is not None:
             print(current_date, " date found.")
+            process_txns_by_date(snapshot_map, current_date_txns)
     return updated_snapshots
 
 
