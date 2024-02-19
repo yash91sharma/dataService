@@ -216,6 +216,14 @@ def update_snapshot_with_stock_txn(snapshot_map, stock_txn):
         raise
 
 
+def update_snapshot_with_option_txn(snapshot_map, txn):
+    try:
+        return
+    except Exception as e:
+        print("Error occured while updating a stock transaction: ", e)
+        raise
+
+
 def process_txns_by_date(snapshot_map, current_date_txns):
     try:
         for txn in current_date_txns:
@@ -224,6 +232,8 @@ def process_txns_by_date(snapshot_map, current_date_txns):
                 snapshot_map["assets"]["cash"] += txn.get("qty")
             if entity_type == "stock":
                 update_snapshot_with_stock_txn(snapshot_map, txn)
+            if entity_type in ["option-put", "option-call"]:
+                update_snapshot_with_option_txn(snapshot_map, txn)
     except Exception as e:
         print("Error occured while updating a transaction: ", e)
         raise
@@ -237,6 +247,7 @@ def get_updated_snapshots(snapshot_map, all_txns, date_list):
             if current_date_txns is not None:
                 process_txns_by_date(snapshot_map, current_date_txns)
             updated_snapshots.append(dict(snapshot_map))
+            # close options if needed.
         return updated_snapshots
     except Exception as e:
         print("Error occured while updating snapshot: ", e)
@@ -253,17 +264,17 @@ def generate_daily_snapshot_by_portfolio(portfolio_id):
             datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
             + timedelta(days=1)
         ).strftime("%Y-%m-%d")
-        print(from_date)
+        # print(from_date)
         today_date = datetime.today().strftime("%Y-%m-%d")
         all_txns = get_all_transactions(portfolio_id, from_date, today_date)
         # print("\ntxns: ", all_txns)
         date_list = generate_date_list(from_date, today_date)
         # print("\ndate_list: ", date_list)
         updated_snapshots = get_updated_snapshots(snapshot_map, all_txns, date_list)
-        # print("\nfinal:\n")
-        # for s in updated_snapshots:
-        #     print(s.get("snapshot_date"))
-        #     print(s)
+        print("\nfinal:\n")
+        for s in updated_snapshots:
+            print(s.get("snapshot_date"))
+            print(s)
     except Exception as e:
         print("Error occured while generating daily snapshots: ", e)
         raise
