@@ -235,8 +235,8 @@ def get_updated_snapshots(snapshot_map, all_txns, date_list):
         for current_date in date_list:
             current_date_txns = all_txns.get(current_date, None)
             if current_date_txns is not None:
-                print(current_date, " date found.")
                 process_txns_by_date(snapshot_map, current_date_txns)
+            updated_snapshots.append(dict(snapshot_map))
         return updated_snapshots
     except Exception as e:
         print("Error occured while updating snapshot: ", e)
@@ -248,7 +248,7 @@ def generate_daily_snapshot_by_portfolio(portfolio_id):
         snapshot_map = get_latest_snapshot_map(portfolio_id)
         if isinstance(snapshot_map, Exception):
             return False
-        print("portfolio:", snapshot_map)
+        # print("portfolio:", snapshot_map)
         from_date = (
             datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
             + timedelta(days=1)
@@ -256,10 +256,14 @@ def generate_daily_snapshot_by_portfolio(portfolio_id):
         print(from_date)
         today_date = datetime.today().strftime("%Y-%m-%d")
         all_txns = get_all_transactions(portfolio_id, from_date, today_date)
-        print("\ntxns: ", all_txns)
+        # print("\ntxns: ", all_txns)
         date_list = generate_date_list(from_date, today_date)
-        print("\ndate_list: ", date_list)
+        # print("\ndate_list: ", date_list)
         updated_snapshots = get_updated_snapshots(snapshot_map, all_txns, date_list)
+        # print("\nfinal:\n")
+        # for s in updated_snapshots:
+        #     print(s.get("snapshot_date"))
+        #     print(s)
     except Exception as e:
         print("Error occured while generating daily snapshots: ", e)
         raise
