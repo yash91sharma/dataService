@@ -241,6 +241,19 @@ def process_txns_by_date(snapshot_map, current_date_txns):
         raise
 
 
+def close_expired_options(current_date: str, options: list) -> list:
+    try:
+        current_active_options = []
+        for option in options:
+            option_expiry_date = option.get("expiry_date")
+            if current_date > option_expiry_date:
+                current_active_options.append(option)
+        return current_active_options
+    except Exception as e:
+        print("Error occured while closing expired options: ", e)
+        raise
+
+
 def get_updated_snapshots(snapshot_map, all_txns, date_list):
     try:
         updated_snapshots = []
@@ -248,8 +261,10 @@ def get_updated_snapshots(snapshot_map, all_txns, date_list):
             current_date_txns = all_txns.get(current_date, None)
             if current_date_txns is not None:
                 process_txns_by_date(snapshot_map, current_date_txns)
+            snapshot_map["assets"]["option"] = close_expired_options(
+                current_date, snapshot_map["assets"]["option"]
+            )
             updated_snapshots.append(dict(snapshot_map))
-            # close options if needed.
         return updated_snapshots
     except Exception as e:
         print("Error occured while updating snapshot: ", e)
