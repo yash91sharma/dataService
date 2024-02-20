@@ -14,16 +14,20 @@ import requests
 from datetime import datetime, timedelta
 
 
-def convert_snapshot_to_map(data):
-    row = data["rows"][0]
-    snapshot = {
-        "portfolio_value": row.get("portfolio_value"),
-        "snapshot_date": row.get("snapshot_date"),
-        "snapshot_date": row.get("snapshot_date"),
-        "assets": {"cash": 0, "stock": {}, "option": []},
-    }
-    snapshot["assets"] = json.loads(row.get("assets"))
-    return snapshot
+def convert_snapshot_to_map(data: dict) -> dict:
+    try:
+        row = data["rows"][0]
+        snapshot = {
+            "portfolio_value": row.get("portfolio_value"),
+            "snapshot_date": row.get("snapshot_date"),
+            "snapshot_date": row.get("snapshot_date"),
+            "assets": {"cash": 0, "stock": {}, "option": []},
+        }
+        snapshot["assets"] = json.loads(row.get("assets"))
+        return snapshot
+    except Exception as e:
+        print("Error occured while converting snapshot to map: ", e)
+        raise
 
 
 def convert_txns_to_map_by_date(data: list) -> dict:
