@@ -45,7 +45,7 @@ def convert_txns_to_map_by_date(data: list) -> dict:
         raise
 
 
-def validate_snapshot(data, fields, subfields):
+def validate_snapshot(data: dict, fields: list[str], subfields: list[str]) -> None:
     try:
         if "rows" not in data:
             raise Exception(generate_missing_field_error("rows"))
@@ -56,7 +56,7 @@ def validate_snapshot(data, fields, subfields):
         row = data["rows"][0]
         basic_field_validation_error = validate_fields(row, fields)
         if basic_field_validation_error is not None:
-            return basic_field_validation_error
+            raise Exception(basic_field_validation_error)
         # Assets can be None, when a portfolio starts
         snapshot_assets = row.get("assets", None)
         if len(snapshot_assets) > 0:
