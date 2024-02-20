@@ -1,3 +1,4 @@
+import copy
 import json
 from .utils import (
     GET_SNAPSHOT_BY_PORTFOLIO_DATE_URL,
@@ -277,7 +278,7 @@ def get_updated_snapshots(snapshot_map, all_txns, date_list):
                 current_date, snapshot_map["assets"]["option"]
             )
             snapshot_map["portfolio_value"] = calculate_portfolio_value(snapshot_map)
-            updated_snapshots.append(dict(snapshot_map))
+            updated_snapshots.append(copy.deepcopy(snapshot_map))
         return updated_snapshots
     except Exception as e:
         print("Error occured while updating snapshot: ", e)
