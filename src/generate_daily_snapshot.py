@@ -218,7 +218,7 @@ def update_snapshot_with_stock_txn(snapshot_map, stock_txn):
 
 def update_snapshot_with_option_txn(snapshot_map, txn):
     try:
-        snapshot_map["assets"]["option"].appent(txn)
+        snapshot_map["assets"]["option"].append(txn)
         snapshot_map["assets"]["cash"] -= txn.get("qty") * txn.get("price") * 100
         return
     except Exception as e:
