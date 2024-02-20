@@ -63,15 +63,18 @@ def validate_snapshot(data, fields, subfields):
         raise
 
 
-def validate_txns(data, fields):
-    if "rows" not in data:
-        return generate_missing_field_error("rows")
-    if len(data["rows"]) > 0:
-        for row in data["rows"]:
-            basic_field_validation_error = validate_fields(row, fields)
-            if basic_field_validation_error is not None:
-                return basic_field_validation_error
-    return None
+def validate_txns(data: dict, fields: list[str]) -> None:
+    try:
+        if "rows" not in data:
+            raise Exception(generate_missing_field_error("rows"))
+        if len(data["rows"]) > 0:
+            for row in data["rows"]:
+                basic_field_validation_error = validate_fields(row, fields)
+                if basic_field_validation_error is not None:
+                    raise Exception(basic_field_validation_error)
+    except Exception as e:
+        print("Error occured while validating txns: ", e)
+        raise
 
 
 def get_latest_snapshot_map(portfolio_id):
@@ -318,3 +321,11 @@ def generate_daily_snapshot_by_portfolio(portfolio_id):
     except Exception as e:
         print("Error occured while generating daily snapshots: ", e)
         raise
+
+
+"""
+TODOS:
+Add support for primuim collection when stock does not exist
+
+query today's stock price, when calculating snapshot per day.
+"""
