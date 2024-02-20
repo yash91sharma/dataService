@@ -221,7 +221,6 @@ def update_snapshot_with_option_txn(snapshot_map, txn):
     try:
         snapshot_map["assets"]["option"].append(txn)
         snapshot_map["assets"]["cash"] -= txn.get("qty") * txn.get("price") * 100
-        return
     except Exception as e:
         print("Error occured while updating a stock transaction: ", e)
         raise
@@ -247,7 +246,7 @@ def close_expired_options(current_date: str, options: list) -> list:
         current_active_options = []
         for option in options:
             option_expiry_date = option.get("expiry_date")
-            if current_date > option_expiry_date:
+            if option_expiry_date > current_date :
                 current_active_options.append(option)
         return current_active_options
     except Exception as e:
