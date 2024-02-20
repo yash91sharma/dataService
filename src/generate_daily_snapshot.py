@@ -90,7 +90,7 @@ def get_latest_snapshot_map(portfolio_id):
         return convert_snapshot_to_map(response.json())
     except Exception as e:
         print("Error occured while generating daily snapshot: ", e)
-        return e
+        raise
 
 
 def get_all_transactions(portfolio_id, start_date, end_date):
@@ -288,7 +288,7 @@ def generate_daily_snapshot_by_portfolio(portfolio_id):
         snapshot_map = get_latest_snapshot_map(portfolio_id)
         if isinstance(snapshot_map, Exception):
             return False
-        # print("portfolio:", snapshot_map)
+        print("portfolio:", snapshot_map)
         from_date = (
             datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
             + timedelta(days=1)
