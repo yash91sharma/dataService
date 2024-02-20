@@ -6,7 +6,7 @@ GET_CLOSE_PRICE_BY_TICKER = "http://127.0.0.1:12344/getClosePriceByTicker"
 
 
 def generate_missing_field_error(field_name):
-    return f'Missing "{field_name}" in the input data'
+    return f'Missing "{field_name}" in the input data.'
 
 
 def validate_fields(data, required_field):
@@ -24,12 +24,9 @@ SNAPSHOT_REQUIRED_FIELDS = [
 ]
 
 SNAPSHOT_ASSETS_REQUIRED_FIELDS = [
-    "entity_type",
-    "ticker",
-    "value",
-    "qty",
-    "cost_basis",
-    "expiry_date",
+    "cash",
+    "stock",
+    "option",
 ]
 
 TXNS_REQUIRED_FIELDS = [

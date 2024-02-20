@@ -21,18 +21,7 @@ def convert_snapshot_to_map(data):
         "snapshot_date": row.get("snapshot_date"),
         "assets": {"cash": 0, "stock": {}, "option": []},
     }
-    for asset in json.loads(row.get("assets")):
-        if asset.get("entity_type") == "cash":
-            snapshot["assets"]["cash"] = asset.get("value")
-        elif asset.get("entity_type") == "stock":
-            # order is value, qty, cost_basis
-            snapshot["assets"]["stock"][asset.get("ticker")] = [
-                asset.get("value"),
-                asset.get("qty"),
-                asset.get("cost_basis"),
-            ]
-        elif asset.get("entity_type") in ["option-put", "option-call"]:
-            snapshot["assets"]["option"].append(asset)
+    snapshot["assets"] = json.loads(row.get("assets"))
     return snapshot
 
 
@@ -48,18 +37,29 @@ def convert_txns_to_map_by_date(data):
 
 
 def validate_snapshot(data, fields, subfields):
-    if "rows" not in data:
-        return generate_missing_field_error("rows")
-    if len(data["rows"]) != 1:
-        return f'Snapshot has incorrect number of rows, expected 1, got {len(data["rows"])}.'
-    row = data["rows"][0]
-    basic_field_validation_error = validate_fields(row, fields)
-    if basic_field_validation_error is not None:
-        return basic_field_validation_error
-    assets_field_validation_error = validate_fields(row.get("assets"), subfields)
-    if assets_field_validation_error is not None:
-        return assets_field_validation_error
-    return None
+    try:
+        if "rows" not in data:
+            raise Exception(generate_missing_field_error("rows"))
+        if len(data["rows"]) != 1:
+            raise Exception(
+                f'Snapshot has incorrect number of rows, expected 1, got {len(data["rows"])}.'
+            )
+        row = data["rows"][0]
+        basic_field_validation_error = validate_fields(row, fields)
+        if basic_field_validation_error is not None:
+            return basic_field_validation_error
+        # Assets can be None, when a portfolio starts
+        snapshot_assets = row.get("assets", None)
+        if len(snapshot_assets) > 0:
+            assets_field_validation_error = validate_fields(snapshot_assets, subfields)
+            if assets_field_validation_error is not None:
+                raise Exception(
+                    assets_field_validation_error
+                    + " Missing fields in snapshot assets."
+                )
+    except Exception as e:
+        print("Error occured while validating snapshot: ", e)
+        raise
 
 
 def validate_txns(data, fields):
@@ -89,7 +89,7 @@ def get_latest_snapshot_map(portfolio_id):
             raise Exception(snapshot_validation_error)
         return convert_snapshot_to_map(response.json())
     except Exception as e:
-        print("Error occured while generating daily snapshot: ", e)
+        print("Error occured while fetching latest snapshot: ", e)
         raise
 
 
@@ -113,7 +113,7 @@ def get_all_transactions(portfolio_id, start_date, end_date):
             raise Exception(transactions_validation_error)
         return convert_txns_to_map_by_date(response.json()["rows"])
     except Exception as e:
-        print("Error occured while generating daily snapshot: ", e)
+        print("Error occured while fetching all transactions: ", e)
         return e
 
 
@@ -254,7 +254,7 @@ def close_expired_options(current_date: str, options: list) -> list:
         raise
 
 
-def calculate_portfolio_value(snapshot_map:dict)->float:
+def calculate_portfolio_value(snapshot_map: dict) -> float:
     try:
         total = snapshot_map["assets"]["cash"]
         for values in snapshot_map["assets"]["stock"].values():
@@ -263,6 +263,7 @@ def calculate_portfolio_value(snapshot_map:dict)->float:
     except Exception as e:
         print("Error occured while calculating portfolio total: ", e)
         raise
+
 
 def get_updated_snapshots(snapshot_map, all_txns, date_list):
     try:
