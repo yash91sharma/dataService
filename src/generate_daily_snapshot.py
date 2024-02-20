@@ -129,15 +129,19 @@ def get_all_transactions(portfolio_id: str, start_date: str, end_date: str) -> d
         raise
 
 
-def generate_date_list(start_date, end_date):
-    date_list = []
-    current_date = start_date
-    while current_date <= end_date:
-        date_list.append(current_date)
-        current_date = (
-            datetime.strptime(current_date, "%Y-%m-%d") + timedelta(days=1)
-        ).strftime("%Y-%m-%d")
-    return date_list
+def generate_date_list(start_date: str, end_date: str) -> list[str]:
+    try:
+        date_list = []
+        current_date = start_date
+        while current_date <= end_date:
+            date_list.append(current_date)
+            current_date = (
+                datetime.strptime(current_date, "%Y-%m-%d") + timedelta(days=1)
+            ).strftime("%Y-%m-%d")
+        return date_list
+    except Exception as e:
+        print("Error occured while generating date list: ", e)
+        raise
 
 
 def get_close_price_by_ticker(ticker: str) -> float:
