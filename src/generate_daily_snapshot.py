@@ -249,7 +249,7 @@ def update_snapshot_with_option_txn(snapshot_map: dict, txn: dict) -> None:
         raise
 
 
-def process_txns_by_date(snapshot_map, current_date_txns):
+def process_txns_by_date(snapshot_map: dict, current_date_txns: list) -> None:
     try:
         for txn in current_date_txns:
             entity_type = txn.get("entity_type")
@@ -288,7 +288,9 @@ def calculate_portfolio_value(snapshot_map: dict) -> float:
         raise
 
 
-def get_updated_snapshots(snapshot_map, all_txns, date_list):
+def get_updated_snapshots(
+    snapshot_map: dict, all_txns: dict, date_list: list[str]
+) -> list[dict]:
     try:
         updated_snapshots = []
         for current_date in date_list:
@@ -307,11 +309,9 @@ def get_updated_snapshots(snapshot_map, all_txns, date_list):
         raise
 
 
-def generate_daily_snapshot_by_portfolio(portfolio_id):
+def generate_daily_snapshot_by_portfolio(portfolio_id: str) -> None:
     try:
         snapshot_map = get_latest_snapshot_map(portfolio_id)
-        if isinstance(snapshot_map, Exception):
-            return False
         print("portfolio:", snapshot_map)
         from_date = (
             datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
