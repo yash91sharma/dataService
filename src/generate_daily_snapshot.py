@@ -85,7 +85,7 @@ def validate_txns(data: dict, fields: list[str]) -> None:
         raise
 
 
-def get_latest_snapshot_map(portfolio_id):
+def get_latest_snapshot_map(portfolio_id: str) -> dict:
     try:
         response = requests.request(
             method="get",
@@ -105,7 +105,7 @@ def get_latest_snapshot_map(portfolio_id):
         raise
 
 
-def get_all_transactions(portfolio_id, start_date, end_date):
+def get_all_transactions(portfolio_id: str, start_date: str, end_date: str) -> dict:
     try:
         response = requests.request(
             method="get",
@@ -126,7 +126,7 @@ def get_all_transactions(portfolio_id, start_date, end_date):
         return convert_txns_to_map_by_date(response.json()["rows"])
     except Exception as e:
         print("Error occured while fetching all transactions: ", e)
-        return e
+        raise
 
 
 def generate_date_list(start_date, end_date):
