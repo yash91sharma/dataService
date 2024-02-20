@@ -164,21 +164,19 @@ def get_close_price_by_ticker(ticker: str) -> float:
         raise
 
 
-def update_existing_stock_in_snapshot(snapshot_map, stock_txn):
+def update_existing_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> None:
     try:
-        ticker = stock_txn.get("ticker")
+        ticker = stock_txn["ticker"]
         # positive for buy, negative for sell
-        txn_value = stock_txn.get("price") * stock_txn.get("qty")
-        txn_type = stock_txn.get("txn_type")
+        txn_value = stock_txn["price"] * stock_txn["qty"]
+        txn_type = stock_txn["txn_type"]
 
         # existing value, qty, cost_basis in the snapshot
         _, qty, cost_basis = snapshot_map["assets"]["stock"][ticker]
 
         if txn_type == "buy":
             # update cost basis, cost basis remains the same for sell
-            cost_basis = ((cost_basis * qty) + (txn_value)) / (
-                qty + stock_txn.get("qty")
-            )
+            cost_basis = ((cost_basis * qty) + (txn_value)) / (qty + stock_txn["qty"])
 
         # Update cash value
         snapshot_map["assets"]["cash"] -= txn_value
