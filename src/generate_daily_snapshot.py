@@ -254,6 +254,16 @@ def close_expired_options(current_date: str, options: list) -> list:
         raise
 
 
+def calculate_portfolio_value(snapshot_map:dict)->float:
+    try:
+        total = snapshot_map["assets"]["cash"]
+        for values in snapshot_map["assets"]["stock"].values():
+            total += values[0]
+        return total
+    except Exception as e:
+        print("Error occured while calculating portfolio total: ", e)
+        raise
+
 def get_updated_snapshots(snapshot_map, all_txns, date_list):
     try:
         updated_snapshots = []
@@ -265,6 +275,7 @@ def get_updated_snapshots(snapshot_map, all_txns, date_list):
             snapshot_map["assets"]["option"] = close_expired_options(
                 current_date, snapshot_map["assets"]["option"]
             )
+            snapshot_map["portfolio_value"] = calculate_portfolio_value(snapshot_map)
             updated_snapshots.append(dict(snapshot_map))
         return updated_snapshots
     except Exception as e:
