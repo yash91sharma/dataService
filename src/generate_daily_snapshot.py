@@ -26,15 +26,19 @@ def convert_snapshot_to_map(data):
     return snapshot
 
 
-def convert_txns_to_map_by_date(data):
-    txns_map_by_date = {}
-    for row in data:
-        date = row.get("date")
-        if date in txns_map_by_date:
-            txns_map_by_date[date].append(row)
-        else:
-            txns_map_by_date[date] = [row]
-    return txns_map_by_date
+def convert_txns_to_map_by_date(data: list) -> dict:
+    try:
+        txns_map_by_date = {}
+        for txn_map in data:
+            date = txn_map.get("date")
+            if date in txns_map_by_date:
+                txns_map_by_date[date].append(txn_map)
+            else:
+                txns_map_by_date[date] = [txn_map]
+        return txns_map_by_date
+    except Exception as e:
+        print("Error occured while converting txns to map by date: ", e)
+        raise
 
 
 def validate_snapshot(data, fields, subfields):
