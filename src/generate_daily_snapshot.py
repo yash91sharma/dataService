@@ -258,6 +258,7 @@ def get_updated_snapshots(snapshot_map, all_txns, date_list):
     try:
         updated_snapshots = []
         for current_date in date_list:
+            snapshot_map["snapshot_date"] = current_date
             current_date_txns = all_txns.get(current_date, None)
             if current_date_txns is not None:
                 process_txns_by_date(snapshot_map, current_date_txns)
