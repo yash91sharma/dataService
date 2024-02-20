@@ -198,11 +198,11 @@ def update_existing_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> No
         raise
 
 
-def update_new_stock_in_snapshot(snapshot_map, stock_txn):
+def update_new_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> None:
     try:
-        ticker = stock_txn.get("ticker")
+        ticker = stock_txn["ticker"]
         # positive for buy, negative for sell
-        qty = stock_txn.get("qty")
+        qty = stock_txn["qty"]
         txn_value = qty * stock_txn.get("price")
 
         # update cash value
@@ -219,7 +219,7 @@ def update_new_stock_in_snapshot(snapshot_map, stock_txn):
         raise
 
 
-def update_snapshot_with_stock_txn(snapshot_map, stock_txn):
+def update_snapshot_with_stock_txn(snapshot_map: dict, stock_txn: dict) -> None:
     try:
         if stock_txn.get("ticker") in snapshot_map["assets"]["stock"]:
             update_existing_stock_in_snapshot(snapshot_map, stock_txn)
@@ -230,10 +230,10 @@ def update_snapshot_with_stock_txn(snapshot_map, stock_txn):
         raise
 
 
-def update_snapshot_with_option_txn(snapshot_map, txn):
+def update_snapshot_with_option_txn(snapshot_map: dict, txn: dict) -> None:
     try:
         snapshot_map["assets"]["option"].append(txn)
-        option_premium = txn.get("qty") * txn.get("price") * 100
+        option_premium = txn["qty"] * txn["price"] * 100
         # sell premium would be negative because sell qty is always negative
         snapshot_map["assets"]["cash"] -= option_premium
 
