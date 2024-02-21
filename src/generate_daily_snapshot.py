@@ -351,4 +351,5 @@ def generate_daily_snapshot_by_portfolio(portfolio_id: str) -> None:
 """
 TODOS:
 1) query today's stock price, when calculating snapshot per day.
+2) write snapshot back to db
 """
