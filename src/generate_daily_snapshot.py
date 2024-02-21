@@ -21,7 +21,7 @@ def convert_snapshot_to_map(data: dict) -> dict:
             "portfolio_value": row.get("portfolio_value"),
             "snapshot_date": row.get("snapshot_date"),
             "snapshot_date": row.get("snapshot_date"),
-            "assets": {"cash": 0, "stock": {}, "option": []},
+            "assets": {"cash": 0, "stock": {}, "option": [], "premium": {}},
         }
         snapshot["assets"] = json.loads(row.get("assets"))
         return snapshot
@@ -209,10 +209,15 @@ def update_new_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> None:
         snapshot_map["assets"]["cash"] -= txn_value
 
         close_price = get_close_price_by_ticker(ticker)
+        stock_premium_earned = 0
+        # stock_premium_earned should be negative if non-zero.
+        if ticker in snapshot_map["assets"]["premium"]:
+            stock_premium_earned = snapshot_map["assets"]["premium"][ticker]
+            del snapshot_map["assets"]["premium"][ticker]
         snapshot_map["assets"]["stock"][ticker] = [
             close_price * qty,
             qty,
-            stock_txn.get("price"),
+            stock_txn.get("price") + (stock_premium_earned / qty),
         ]
     except Exception as e:
         print("Error occured while updating a new transaction: ", e)
@@ -239,11 +244,21 @@ def update_snapshot_with_option_txn(snapshot_map: dict, txn: dict) -> None:
 
         # lower the cost basis of the stock if it exists
         ticker = txn.get("ticker")
-        if ticker in snapshot_map["assets"]["stock"]:
-            ticker_qty = snapshot_map["assets"]["stock"][ticker][1]
-            snapshot_map["assets"]["stock"][ticker][2] -= (
-                abs(option_premium) / ticker_qty
-            )
+        txn_type = txn.get("txn_type")
+        if txn_type == "sell":
+            if ticker in snapshot_map["assets"]["stock"]:
+                ticker_qty = snapshot_map["assets"]["stock"][ticker][1]
+                # option_premium will be -ve for sells, hence it would
+                # be subtracted for adjusted cost basis.
+                snapshot_map["assets"]["stock"][ticker][2] += (
+                    option_premium / ticker_qty
+                )
+
+            else:
+                if ticker not in snapshot_map["assets"]["premium"]:
+                    snapshot_map["assets"]["premium"][ticker] = 0.0
+                # again, negative value
+                snapshot_map["assets"]["premium"][ticker] += option_premium
     except Exception as e:
         print("Error occured while updating a stock transaction: ", e)
         raise
@@ -335,7 +350,5 @@ def generate_daily_snapshot_by_portfolio(portfolio_id: str) -> None:
 
 """
 TODOS:
-Add support for primuim collection when stock does not exist
-
-query today's stock price, when calculating snapshot per day.
+1) query today's stock price, when calculating snapshot per day.
 """
