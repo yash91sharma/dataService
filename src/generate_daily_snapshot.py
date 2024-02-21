@@ -144,19 +144,19 @@ def generate_date_list(start_date: str, end_date: str) -> list[str]:
         raise
 
 
-def get_close_price_by_ticker(ticker: str) -> float:
+def get_close_price_by_ticker(ticker: str, txn_date: str) -> float:
     try:
         response = requests.request(
             method="get",
             url=GET_CLOSE_PRICE_BY_TICKER,
             headers={"Content-Type": "application/json"},
-            json={"ticker": ticker},
+            json={"ticker": ticker, "start_date": txn_date, "end_date": txn_date},
             timeout=10,
         )
         response.raise_for_status()
         data = response.json()
-        if "close_price" in data:
-            return float(data["close_price"])
+        if "close_price" in data and len(data["close_price"] == 1):
+            return float(data["close_price"][0])
         else:
             raise ValueError("Close_price not found in response.")
     except Exception as e:
@@ -167,6 +167,7 @@ def get_close_price_by_ticker(ticker: str) -> float:
 def update_existing_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> None:
     try:
         ticker = stock_txn["ticker"]
+        txn_date = stock_txn["date"]
         # positive for buy, negative for sell
         txn_value = stock_txn["price"] * stock_txn["qty"]
         txn_type = stock_txn["txn_type"]
@@ -187,7 +188,7 @@ def update_existing_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> No
             del snapshot_map["assets"]["stock"][ticker]
         else:
             # update the value if stock qty is non zero
-            close_price = get_close_price_by_ticker(ticker)
+            close_price = get_close_price_by_ticker(ticker, txn_date)
             snapshot_map["assets"]["stock"][ticker] = [
                 qty * close_price,
                 qty,
@@ -201,6 +202,7 @@ def update_existing_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> No
 def update_new_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> None:
     try:
         ticker = stock_txn["ticker"]
+        txn_date = stock_txn["date"]
         # positive for buy, negative for sell
         qty = stock_txn["qty"]
         txn_value = qty * stock_txn.get("price")
@@ -208,7 +210,7 @@ def update_new_stock_in_snapshot(snapshot_map: dict, stock_txn: dict) -> None:
         # update cash value
         snapshot_map["assets"]["cash"] -= txn_value
 
-        close_price = get_close_price_by_ticker(ticker)
+        close_price = get_close_price_by_ticker(ticker, txn_date)
         stock_premium_earned = 0
         # stock_premium_earned should be negative if non-zero.
         if ticker in snapshot_map["assets"]["premium"]:
