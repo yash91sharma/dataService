@@ -1,13 +1,13 @@
 from flask import Flask, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
-from src.generate_daily_snapshot import generate_daily_snapshot
+from src.generate_daily_snapshot import generate_daily_snapshot_by_portfolio
 from waitress import serve
 
 app = Flask(__name__)
 
 scheduler = BackgroundScheduler({"apscheduler.timezone": "US/Pacific"})
 # scheduler.add_job(your_function, 'cron', hour=18, minute=0)
-scheduler.add_job(generate_daily_snapshot, "interval", seconds=10)
+scheduler.add_job(generate_daily_snapshot_by_portfolio, "interval", seconds=10)
 scheduler.start()
 
 
