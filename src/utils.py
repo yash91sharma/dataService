@@ -43,3 +43,7 @@ TXNS_REQUIRED_FIELDS = [
     "ticker",
     "txn_type",
 ]
+
+GENERATE_DAILY_SNAPSHOTS_REQUIRED_FIELDS = [
+    "portfolio_id"
+] 

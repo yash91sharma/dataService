@@ -1,3 +1,0 @@
-from src.generate_daily_snapshot import generate_daily_snapshot_by_portfolio
-
-generate_daily_snapshot_by_portfolio("p1")
