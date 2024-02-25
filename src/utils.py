@@ -4,6 +4,8 @@ GET_TXNS_BY_PORTFOLIO_DATE_URL = "http://127.0.0.1:12342/getTransactionsByPortfo
 
 GET_CLOSE_PRICE_BY_TICKER = "http://127.0.0.1:12344/getClosePriceByTicker"
 
+GET_MARKET_STATUS_BY_DATE = "http://127.0.0.1:12344/getMarketStatusByDate"
+
 
 def generate_missing_field_error(field_name):
     return f'Missing "{field_name}" in the input data.'

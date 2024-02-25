@@ -9,6 +9,7 @@ from .utils import (
     GET_TXNS_BY_PORTFOLIO_DATE_URL,
     TXNS_REQUIRED_FIELDS,
     GET_CLOSE_PRICE_BY_TICKER,
+    GET_MARKET_STATUS_BY_DATE,
 )
 import requests
 from datetime import datetime, timedelta
@@ -129,15 +130,37 @@ def get_all_transactions(portfolio_id: str, start_date: str, end_date: str) -> d
         raise
 
 
+def get_market_status_by_date(date: str) -> bool:
+    try:
+        response = requests.request(
+            method="get",
+            url=GET_MARKET_STATUS_BY_DATE,
+            headers={"Content-Type": "application/json"},
+            json={"date": date},
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+        if "market_status" in data and data["market_status"] in [True, False]:
+            return data["market_status"]
+        else:
+            raise ValueError("market_status not found in response.")
+    except Exception as e:
+        print("Error occured while getting market status by date: ", e)
+        raise
+
+
 def generate_date_list(start_date: str, end_date: str) -> list[str]:
     try:
         date_list = []
         current_date = start_date
         while current_date <= end_date:
-            date_list.append(current_date)
+            if get_market_status_by_date(current_date) == True:
+                date_list.append(current_date)
             current_date = (
                 datetime.strptime(current_date, "%Y-%m-%d") + timedelta(days=1)
             ).strftime("%Y-%m-%d")
+        print("dates:",date_list)
         return date_list
     except Exception as e:
         print("Error occured while generating date list: ", e)
