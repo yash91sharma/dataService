@@ -11,10 +11,6 @@ logging.basicConfig(
 app = Flask(__name__)
 
 
-@app.route("/")
-def hello():
-    return jsonify({"message": "Portfolio Data Service is up!"})
-
 @app.route("/generateDailySnapshots", methods=["POST"])
 def generate_daily_snapshots_route():
     return generate_daily_snapshots(request)
