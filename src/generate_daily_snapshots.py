@@ -389,22 +389,22 @@ def generate_daily_snapshots(request):
         portfolio_id = data["portfolio_id"]
         snapshot_map = get_latest_snapshot_map(portfolio_id)
         print("portfolio:", snapshot_map)
-        # from_date = (
-        #     datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
-        #     + timedelta(days=1)
-        # ).strftime("%Y-%m-%d")
-        # # print(from_date)
-        # today_date = datetime.today().strftime("%Y-%m-%d")
-        # all_txns = get_all_transactions(portfolio_id, from_date, today_date)
-        # # print("\ntxns: ", all_txns)
-        # date_list = generate_date_list(from_date, today_date)
-        # # print("\ndate_list: ", date_list)
-        # updated_snapshots = get_updated_snapshots(snapshot_map, all_txns, date_list)
-        # print("\nfinal:\n")
-        # for s in updated_snapshots:
-        #     print(s.get("snapshot_date"))
-        #     print(s)
-        # write_snapshots_to_db(updated_snapshots)
+        from_date = (
+            datetime.strptime(snapshot_map.get("snapshot_date", None), "%Y-%m-%d")
+            + timedelta(days=1)
+        ).strftime("%Y-%m-%d")
+        # print(from_date)
+        today_date = datetime.today().strftime("%Y-%m-%d")
+        all_txns = get_all_transactions(portfolio_id, from_date, today_date)
+        # print("\ntxns: ", all_txns)
+        date_list = generate_date_list(from_date, today_date)
+        # print("\ndate_list: ", date_list)
+        updated_snapshots = get_updated_snapshots(snapshot_map, all_txns, date_list)
+        print("\nfinal:\n")
+        for s in updated_snapshots:
+            print(s.get("snapshot_date"))
+            print(s)
+        write_snapshots_to_db(updated_snapshots)
         return make_response(jsonify({"message":"Snapshots updated successfully"}), 200)
     except Exception as e:
         print("Error occured while generating daily snapshots: ", e)

@@ -22,5 +22,5 @@ def generate_daily_snapshots_route():
 
 if __name__ == "__main__":
     # dev server
-    app.run(debug=True, port=12345)
-    # serve(app, host="127.0.0.1", port = 12345)
+    # app.run(debug=True, port=12345)
+    serve(app, host="127.0.0.1", port = 12345)
