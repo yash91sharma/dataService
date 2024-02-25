@@ -8,8 +8,9 @@ from .utils import (
     SNAPSHOT_ASSETS_REQUIRED_FIELDS,
     GET_TXNS_BY_PORTFOLIO_DATE_URL,
     TXNS_REQUIRED_FIELDS,
-    GET_CLOSE_PRICE_BY_TICKER,
-    GET_MARKET_STATUS_BY_DATE,
+    GET_CLOSE_PRICE_BY_TICKER_URL,
+    GET_MARKET_STATUS_BY_DATE_URL,
+    ADD_SNAPSHOT_URL,
 )
 import requests
 from datetime import datetime, timedelta
@@ -19,6 +20,7 @@ def convert_snapshot_to_map(data: dict) -> dict:
     try:
         row = data["rows"][0]
         snapshot = {
+            "portfolio_id": row.get("portfolio_id"),
             "portfolio_value": row.get("portfolio_value"),
             "snapshot_date": row.get("snapshot_date"),
             "snapshot_date": row.get("snapshot_date"),
@@ -134,7 +136,7 @@ def get_market_status_by_date(date: str) -> bool:
     try:
         response = requests.request(
             method="get",
-            url=GET_MARKET_STATUS_BY_DATE,
+            url=GET_MARKET_STATUS_BY_DATE_URL,
             headers={"Content-Type": "application/json"},
             json={"date": date},
             timeout=10,
@@ -160,7 +162,6 @@ def generate_date_list(start_date: str, end_date: str) -> list[str]:
             current_date = (
                 datetime.strptime(current_date, "%Y-%m-%d") + timedelta(days=1)
             ).strftime("%Y-%m-%d")
-        print("dates:",date_list)
         return date_list
     except Exception as e:
         print("Error occured while generating date list: ", e)
@@ -171,7 +172,7 @@ def get_close_price_by_ticker(ticker: str, txn_date: str) -> float:
     try:
         response = requests.request(
             method="get",
-            url=GET_CLOSE_PRICE_BY_TICKER,
+            url=GET_CLOSE_PRICE_BY_TICKER_URL,
             headers={"Content-Type": "application/json"},
             json={"ticker": ticker, "start_date": txn_date, "end_date": txn_date},
             timeout=10,
@@ -349,6 +350,33 @@ def get_updated_snapshots(
         raise
 
 
+def write_snapshots_to_db(snapshot_maps: list[dict]) -> None:
+    try:
+        for snapshot_map in snapshot_maps:
+            response = requests.request(
+                method="post",
+                url=ADD_SNAPSHOT_URL,
+                headers={"Content-Type": "application/json"},
+                json={
+                    "portfolio_id": snapshot_map["portfolio_id"],
+                    "portfolio_value": snapshot_map["portfolio_value"],
+                    "snapshot_date": snapshot_map["snapshot_date"],
+                    "assets": {
+                        "cash": snapshot_map["assets"]["cash"],
+                        "stock": snapshot_map["assets"]["stock"],
+                        "premium": snapshot_map["assets"]["premium"],
+                        "option": snapshot_map["assets"]["option"],
+                    },
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+            print("writing to db succeeded for date: ", snapshot_map["snapshot_date"])
+    except Exception as e:
+        print("Error occured while writing snapshots to db: ", e)
+        raise
+
+
 def generate_daily_snapshot_by_portfolio(portfolio_id: str) -> None:
     try:
         snapshot_map = get_latest_snapshot_map(portfolio_id)
@@ -368,13 +396,7 @@ def generate_daily_snapshot_by_portfolio(portfolio_id: str) -> None:
         for s in updated_snapshots:
             print(s.get("snapshot_date"))
             print(s)
+        write_snapshots_to_db(updated_snapshots)
     except Exception as e:
         print("Error occured while generating daily snapshots: ", e)
         raise
-
-
-"""
-TODOS:
-1) query today's stock price, when calculating snapshot per day.
-2) write snapshot back to db
-"""

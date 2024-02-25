@@ -2,9 +2,11 @@ GET_SNAPSHOT_BY_PORTFOLIO_DATE_URL = "http://127.0.0.1:12342/getSnapshotByPortfo
 
 GET_TXNS_BY_PORTFOLIO_DATE_URL = "http://127.0.0.1:12342/getTransactionsByPortfolioDate"
 
-GET_CLOSE_PRICE_BY_TICKER = "http://127.0.0.1:12344/getClosePriceByTicker"
+GET_CLOSE_PRICE_BY_TICKER_URL = "http://127.0.0.1:12344/getClosePriceByTicker"
 
-GET_MARKET_STATUS_BY_DATE = "http://127.0.0.1:12344/getMarketStatusByDate"
+GET_MARKET_STATUS_BY_DATE_URL = "http://127.0.0.1:12344/getMarketStatusByDate"
+
+ADD_SNAPSHOT_URL = "http://127.0.0.1:12342/addSnapshot"
 
 
 def generate_missing_field_error(field_name):
