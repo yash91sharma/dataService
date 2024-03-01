@@ -13,7 +13,7 @@ from .utils import (
     GET_CLOSE_PRICE_BY_TICKER_URL,
     GET_MARKET_STATUS_BY_DATE_URL,
     ADD_SNAPSHOT_URL,
-    GENERATE_DAILY_SNAPSHOTS_REQUIRED_FIELDS
+    GENERATE_DAILY_SNAPSHOTS_REQUIRED_FIELDS,
 )
 import requests
 from datetime import datetime, timedelta
@@ -383,7 +383,9 @@ def write_snapshots_to_db(snapshot_maps: list[dict]) -> None:
 def generate_daily_snapshots(request):
     try:
         data = request.json
-        field_validation_error = validate_fields(data, GENERATE_DAILY_SNAPSHOTS_REQUIRED_FIELDS)
+        field_validation_error = validate_fields(
+            data, GENERATE_DAILY_SNAPSHOTS_REQUIRED_FIELDS
+        )
         if field_validation_error is not None:
             raise Exception(field_validation_error)
         portfolio_id = data["portfolio_id"]
@@ -400,12 +402,14 @@ def generate_daily_snapshots(request):
         date_list = generate_date_list(from_date, today_date)
         # print("\ndate_list: ", date_list)
         updated_snapshots = get_updated_snapshots(snapshot_map, all_txns, date_list)
-        print("\nfinal:\n")
-        for s in updated_snapshots:
-            print(s.get("snapshot_date"))
-            print(s)
+        # print("\nfinal:\n")
+        # for s in updated_snapshots:
+        #     print(s.get("snapshot_date"))
+        #     print(s)
         write_snapshots_to_db(updated_snapshots)
-        return make_response(jsonify({"message":"Snapshots updated successfully"}), 200)
+        return make_response(
+            jsonify({"message": "Snapshots updated successfully"}), 200
+        )
     except Exception as e:
         print("Error occured while generating daily snapshots: ", e)
-        return make_response(jsonify({"error": str(e)}),500)
+        return make_response(jsonify({"error": str(e)}), 500)
